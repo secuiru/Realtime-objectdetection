@@ -7,7 +7,6 @@ import numpy as np
 import torch
 import tkinter as tk
 from tkinter import *
-from torchvision.io.image import read_image
 import time
 
 ikkuna = tk.Tk()
@@ -22,7 +21,7 @@ lmain.grid()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 weights = FasterRCNN_ResNet50_FPN_V2_Weights.DEFAULT
-model = fasterrcnn_resnet50_fpn_v2(weights=weights, box_score_thresh=0.8)
+model = fasterrcnn_resnet50_fpn_v2(weights=weights, box_score_thresh=0.85)
 model.to(device)
 model.eval()
 
@@ -77,14 +76,14 @@ def toggle_mode():
     global video_on
     video_on = not video_on
     if video_on:
-        current_mode_label.config(text="Current Mode: Video Stream")
+        current_mode_label.config(text="Current Mode: Video")
         video_stream()
     else:
-        current_mode_label.config(text="Current Mode: Object Detection")
+        current_mode_label.config(text="Current Mode: Freeze")
 
 video_button = Button(ikkuna, text="Toggle Mode", command=toggle_mode)
 video_button.place(y=0, x=200)
 
-
+video_stream()
 
 ikkuna.mainloop()
