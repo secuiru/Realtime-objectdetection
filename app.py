@@ -2,7 +2,8 @@ import cv2
 from torchvision.models.detection import fasterrcnn_resnet50_fpn_v2, FasterRCNN_ResNet50_FPN_V2_Weights
 from torchvision.utils import draw_bounding_boxes
 from torchvision.transforms.functional import to_pil_image, to_tensor
-from PIL import Image, ImageTk
+from PIL import Image as Img
+from PIL import ImageTk
 import numpy as np
 import torch
 import tkinter as tk
@@ -42,7 +43,8 @@ reader = easyocr.Reader(['en'])
 
 
 def video_stream():
-    global fps
+    global fps, video_on
+
     ret, img = cap.read()
     start_time = time.time()
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -71,48 +73,45 @@ def video_stream():
     fps_r = round(fps, 1)
     fpsdisplay = tk.Label(ikkuna, text=f"FPS: {fps_r}")
     fpsdisplay.place(x=550, y=0)
-    ikkuna.update_idletasks()
     if video_on:
         ikkuna.after(10, video_stream)
 
-def cleanup_text(text):
-	# strip out non-ASCII text so we can draw the text on the image
-	# using OpenCV
-	return "".join([c if ord(c) < 128 else "" for c in text]).strip()
-
 def text_detection():
-    
-    
-    global fps
-    ret, img = cap.read()
+    global fps, video_on
     start_time = time.time()
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = np.array(img)
-    
+    ret, frame = cap.read()
 
-
-
-    results = reader.readtext(img)
+    results = reader.readtext(frame)
 
     for (bbox, text, prob) in results:
-      
-        print("[INFO] {:.4f}: {}".format(prob, text))
-       
-        (tl, tr, br, bl) = bbox
-        tl = (int(tl[0]), int(tl[1]))
-        tr = (int(tr[0]), int(tr[1]))
-        br = (int(br[0]), int(br[1]))
-        bl = (int(bl[0]), int(bl[1]))
- 
-        text = cleanup_text(text)
+        if prob >0.8:#THRESHOLD
+            print("[INFO] {:.4f}: {}".format(prob, text))
+            (tl, tr, br, bl) = bbox
+            tl = (int(tl[0]), int(tl[1]))
+            br = (int(br[0]), int(br[1]))
+            cv2.rectangle(frame, tl, br, (0, 255, 0), 2)
+            cv2.putText(frame, text, (tl[0], tl[1] - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
-        cv2.rectangle(img, tl, br, (0, 255, 0), 2)
-        cv2.putText(img, text, (tl[0], tl[1] - 10),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+    if not video_on:
+        img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        im_pil = Img.fromarray(img)
+        im_tk = ImageTk.PhotoImage(im_pil)
+    	
+        lmain.img = im_tk
+        lmain.configure(image=im_tk)
+        fps_r = round(fps, 1)
+        fpsdisplay = tk.Label(ikkuna, text=f"FPS: {fps_r}")
+        fpsdisplay.place(x=550, y=0)
+        ikkuna.after(10, text_detection)
+        end_time = time.time()
+        fps = 1 / np.round(end_time - start_time, 3)
+        fps_r = round(fps, 1)
+        fpsdisplay = tk.Label(ikkuna, text=f"FPS: {fps_r}")
+        fpsdisplay.place(x=550, y=0)
 
-   
 
-    
+
 
 def toggle_mode():
     global video_on
