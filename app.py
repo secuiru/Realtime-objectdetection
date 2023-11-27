@@ -8,6 +8,7 @@ import torch
 import tkinter as tk
 from tkinter import *
 import time
+import easyocr
 
 ikkuna = tk.Tk()
 ikkuna.title("Object detect")
@@ -36,6 +37,8 @@ current_mode_label.place(x=700, y=0)
 
 
 captured_image = None
+
+reader = easyocr.Reader(['en'])
 
 
 def video_stream():
@@ -72,6 +75,45 @@ def video_stream():
     if video_on:
         ikkuna.after(10, video_stream)
 
+def cleanup_text(text):
+	# strip out non-ASCII text so we can draw the text on the image
+	# using OpenCV
+	return "".join([c if ord(c) < 128 else "" for c in text]).strip()
+
+def text_detection():
+    
+    
+    global fps
+    ret, img = cap.read()
+    start_time = time.time()
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = np.array(img)
+    
+
+
+
+    results = reader.readtext(img)
+
+    for (bbox, text, prob) in results:
+      
+        print("[INFO] {:.4f}: {}".format(prob, text))
+       
+        (tl, tr, br, bl) = bbox
+        tl = (int(tl[0]), int(tl[1]))
+        tr = (int(tr[0]), int(tr[1]))
+        br = (int(br[0]), int(br[1]))
+        bl = (int(bl[0]), int(bl[1]))
+ 
+        text = cleanup_text(text)
+
+        cv2.rectangle(img, tl, br, (0, 255, 0), 2)
+        cv2.putText(img, text, (tl[0], tl[1] - 10),
+        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+
+   
+
+    
+
 def toggle_mode():
     global video_on
     video_on = not video_on
@@ -79,7 +121,8 @@ def toggle_mode():
         current_mode_label.config(text="Current Mode: Video")
         video_stream()
     else:
-        current_mode_label.config(text="Current Mode: Freeze")
+        current_mode_label.config(text="Current Mode: Text")
+        text_detection()
 
 video_button = Button(ikkuna, text="Toggle Mode", command=toggle_mode)
 video_button.place(y=0, x=200)
