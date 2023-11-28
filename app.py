@@ -49,6 +49,7 @@ current_mode_label.place(x=700, y=0)
 
 
 captured_image = None
+translate_var=False
 
 reader = easyocr.Reader(['en'])
 
@@ -88,7 +89,7 @@ def video_stream():
         ikkuna.after(10, video_stream)
 
 def text_detection():
-    global fps, video_on
+    global fps, video_on,translate_var
     start_time = time.time()
     ret, frame = cap.read()
 
@@ -103,10 +104,12 @@ def text_detection():
             cv2.rectangle(frame, tl, br, (0, 255, 0), 2)
             cv2.putText(frame, text, (tl[0], tl[1] - 10),
             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-            text_box.insert(tk.END,text+"\n")
-
-            translation = translator.translate(text)
-            print(translation)
+            if translate_var:
+                text_box.insert(tk.END,text+"\n")
+            else:
+                translation = translator.translate(text)
+                #print(translation)
+                text_box.insert(tk.END,translation+"\n")
 
 
     if not video_on:
@@ -139,8 +142,18 @@ def toggle_mode():
         current_mode_label.config(text="Current Mode: Text")
         text_detection()
 
-video_button = Button(ikkuna, text="Toggle Mode", command=toggle_mode)
-video_button.place(y=0, x=200)
+def translate_mode():
+    global translate_var
+    if translate_var:
+        translate_var = False
+    else:
+            translate_var=True
+
+video_button = Button(ikkuna, text="Toggle mode", command=toggle_mode)
+video_button.place(y=20, x=650)
+
+translate_button = Button(ikkuna, text="Translate", command=translate_mode)
+translate_button.place(y=20, x=730)
 
 text_box.grid(row=0,column=1)
 text_box.insert(tk.END,"")
