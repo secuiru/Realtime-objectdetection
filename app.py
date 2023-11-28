@@ -10,6 +10,11 @@ import tkinter as tk
 from tkinter import *
 import time
 import easyocr
+from translate import Translator
+
+
+to_lang = 'en'
+translator= Translator(to_lang="en", from_lang='autodetect')
 
 ikkuna = tk.Tk()
 ikkuna.title("Object detect")
@@ -91,7 +96,7 @@ def text_detection():
 
     for (bbox, text, prob) in results:
         if prob >0.8:#THRESHOLD
-            print("[INFO] {:.4f}: {}".format(prob, text))
+            #print("[INFO] {:.4f}: {}".format(prob, text))
             (tl, tr, br, bl) = bbox
             tl = (int(tl[0]), int(tl[1]))
             br = (int(br[0]), int(br[1]))
@@ -99,6 +104,10 @@ def text_detection():
             cv2.putText(frame, text, (tl[0], tl[1] - 10),
             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
             text_box.insert(tk.END,text+"\n")
+
+            translation = translator.translate(text)
+            print(translation)
+
 
     if not video_on:
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
