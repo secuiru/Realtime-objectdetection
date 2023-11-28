@@ -13,12 +13,18 @@ import easyocr
 
 ikkuna = tk.Tk()
 ikkuna.title("Object detect")
-ikkuna.geometry("1000x512")
+ikkuna.geometry("1400x512")
 app = Frame(ikkuna, bg="black")
 app.grid()
 
 lmain = Label(app)
 lmain.grid()
+
+text_box=Text(ikkuna,height=3,width=15)
+text_scroll=Scrollbar(ikkuna, orient='vertical',command=text_box.yview)
+text_scroll.grid(row=0,column=2,sticky=tk.NS)
+text_box=Text(yscrollcommand=text_scroll.set)
+
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -91,7 +97,8 @@ def text_detection():
             br = (int(br[0]), int(br[1]))
             cv2.rectangle(frame, tl, br, (0, 255, 0), 2)
             cv2.putText(frame, text, (tl[0], tl[1] - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+            text_box.insert(tk.END,text+"\n")
 
     if not video_on:
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -125,6 +132,9 @@ def toggle_mode():
 
 video_button = Button(ikkuna, text="Toggle Mode", command=toggle_mode)
 video_button.place(y=0, x=200)
+
+text_box.grid(row=0,column=1)
+text_box.insert(tk.END,"")
 
 video_stream()
 
