@@ -83,8 +83,7 @@ def video_stream():
     end_time = time.time()
     fps = 1 / np.round(end_time - start_time, 3)
     fps_r = round(fps, 1)
-    fpsdisplay = tk.Label(ikkuna, text=f"FPS: {fps_r}")
-    fpsdisplay.place(x=550, y=0)
+    fpsdisplay.config(text=f"FPS: {fps_r}")
     if video_on:
         ikkuna.after(10, video_stream)
 
@@ -111,6 +110,7 @@ def text_detection():
                 #print(translation)
                 text_box.insert(tk.END,translation+"\n")
 
+    text_box.yview(tk.END)
 
     if not video_on:
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -119,15 +119,11 @@ def text_detection():
     	
         lmain.img = im_tk
         lmain.configure(image=im_tk)
-        fps_r = round(fps, 1)
-        fpsdisplay = tk.Label(ikkuna, text=f"FPS: {fps_r}")
-        fpsdisplay.place(x=550, y=0)
         ikkuna.after(10, text_detection)
         end_time = time.time()
         fps = 1 / np.round(end_time - start_time, 3)
         fps_r = round(fps, 1)
-        fpsdisplay = tk.Label(ikkuna, text=f"FPS: {fps_r}")
-        fpsdisplay.place(x=550, y=0)
+        fpsdisplay.config(text=f"FPS: {fps_r}")
 
 
 
@@ -146,17 +142,22 @@ def translate_mode():
     global translate_var
     if translate_var:
         translate_var = False
+        translate_button.config(text="Translating on")
     else:
-            translate_var=True
+        translate_var=True
+        translate_button.config(text="Translating off")
 
 video_button = Button(ikkuna, text="Toggle mode", command=toggle_mode)
 video_button.place(y=20, x=650)
 
-translate_button = Button(ikkuna, text="Translate", command=translate_mode)
+translate_button = Button(ikkuna, text="Translating on", command=translate_mode)
 translate_button.place(y=20, x=730)
 
 text_box.grid(row=0,column=1)
 text_box.insert(tk.END,"")
+
+fpsdisplay = tk.Label(ikkuna, text=f"FPS:--")
+fpsdisplay.place(x=600, y=0)
 
 video_stream()
 
