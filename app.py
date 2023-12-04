@@ -7,7 +7,8 @@ from PIL import ImageTk
 import numpy as np
 import torch
 import tkinter as tk
-from tkinter import *
+from tkinter import ttk
+from tkinter import * 
 import time
 import easyocr
 from translate import Translator
@@ -55,7 +56,7 @@ reader = easyocr.Reader(['en'])
 
 
 def video_stream():
-    global fps, video_on
+    global fps, video_on,cap
 
     ret, img = cap.read()
     start_time = time.time()
@@ -88,7 +89,7 @@ def video_stream():
         ikkuna.after(10, video_stream)
 
 def text_detection():
-    global fps, video_on,translate_var
+    global fps, video_on,translate_var,cap
     start_time = time.time()
     ret, frame = cap.read()
 
@@ -107,7 +108,6 @@ def text_detection():
                 text_box.insert(tk.END,text+"\n")
             else:
                 translation = translator.translate(text)
-                #print(translation)
                 text_box.insert(tk.END,translation+"\n")
 
     text_box.yview(tk.END)
@@ -147,6 +147,16 @@ def translate_mode():
         translate_var=True
         translate_button.config(text="Translating off")
 
+def input_changed(event):
+    global cap
+    selection = input_device_list.get()
+    selection =int(selection)
+    cap = cv2.VideoCapture(selection)
+   
+    
+stringvariable=tk.StringVar()
+input_device_list = ttk.Combobox(ikkuna,values=["0", "1", "2", "3"],textvariable=stringvariable)
+
 video_button = Button(ikkuna, text="Toggle mode", command=toggle_mode)
 video_button.place(y=20, x=650)
 
@@ -158,6 +168,12 @@ text_box.insert(tk.END,"")
 
 fpsdisplay = tk.Label(ikkuna, text=f"FPS:--")
 fpsdisplay.place(x=600, y=0)
+
+input_device = tk.Label(ikkuna, text="input")
+input_device.place(x=870, y=0)
+input_device_list.place(x=820, y=24)
+input_device_list.bind("<<ComboboxSelected>>", input_changed)
+input_device_list.current()
 
 video_stream()
 
