@@ -165,6 +165,8 @@ def input_changed(event):
     selection = input_device_list.get()
     selection =int(selection)
     cap = cv2.VideoCapture(selection)
+    cap.set(3, 512)
+    cap.set(4, 512)
    
     
 stringvariable=tk.StringVar()
@@ -183,14 +185,14 @@ clicked = StringVar()
 clicked.set('en')
 clicked.trace_add('write', update_language)
 option_menu = OptionMenu(ikkuna, clicked, *lista)
-option_menu.place(x=1050, y=17)
+option_menu.place(x=815, y=17)
 
 fpsdisplay = tk.Label(ikkuna, text=f"FPS:--")
 fpsdisplay.place(x=600, y=0)
 
-input_device = tk.Label(ikkuna, text="input")
-input_device.place(x=870, y=0)
-input_device_list.place(x=820, y=24)
+input_device = tk.Label(ikkuna, text="Input device")
+input_device.place(x=1050, y=0)
+input_device_list.place(x=1050, y=24)
 input_device_list.bind("<<ComboboxSelected>>", input_changed)
 input_device_list.current()
 
