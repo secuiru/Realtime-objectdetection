@@ -14,7 +14,7 @@ import easyocr
 from translate import Translator
 
 
-to_lang = 'en'
+to_lang = ''
 translator= Translator(to_lang="en", from_lang='autodetect')
 
 ikkuna = tk.Tk()
@@ -31,6 +31,13 @@ text_scroll=Scrollbar(ikkuna, orient='vertical',command=text_box.yview)
 text_scroll.grid(row=0,column=2,sticky=tk.NS)
 text_box=Text(yscrollcommand=text_scroll.set)
 
+lista = ['en','se','fi','zh','de']
+
+clicked = StringVar() 
+clicked.set('en')
+
+to_lang = clicked.get()
+translator= Translator(to_lang= to_lang, from_lang='autodetect')
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -38,6 +45,12 @@ weights = FasterRCNN_ResNet50_FPN_V2_Weights.DEFAULT
 model = fasterrcnn_resnet50_fpn_v2(weights=weights, box_score_thresh=0.85)
 model.to(device)
 model.eval()
+
+def update_language(*args):
+    global to_lang, translator
+    to_lang = clicked.get()
+    translator = Translator(to_lang=to_lang, from_lang='autodetect')
+
 
 fps = 0
 cap = cv2.VideoCapture(0)
@@ -165,6 +178,12 @@ translate_button.place(y=20, x=730)
 
 text_box.grid(row=0,column=1)
 text_box.insert(tk.END,"")
+
+clicked = StringVar() 
+clicked.set('en')
+clicked.trace_add('write', update_language)
+option_menu = OptionMenu(ikkuna, clicked, *lista)
+option_menu.place(x=1050, y=17)
 
 fpsdisplay = tk.Label(ikkuna, text=f"FPS:--")
 fpsdisplay.place(x=600, y=0)
