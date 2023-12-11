@@ -16,7 +16,6 @@ from translate import Translator
 
 to_lang = ''
 translator= Translator(to_lang="en", from_lang='autodetect')
-
 ikkuna = tk.Tk()
 ikkuna.title("Object detect")
 ikkuna.geometry("1400x512")
@@ -57,6 +56,7 @@ cap = cv2.VideoCapture(0)
 cap.set(3, 512)
 cap.set(4, 512)
 
+boolblur = False
 video_on = True  
 current_mode_label = tk.Label(ikkuna, text="Current Mode: Video Stream")
 current_mode_label.place(x=700, y=0)
@@ -67,39 +67,57 @@ translate_var=False
 
 reader = easyocr.Reader(['en'])
 
-
 def video_stream():
-    global fps, video_on,cap
+    global fps, video_on, cap, boolblur
 
     ret, img = cap.read()
     start_time = time.time()
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = to_tensor(img).to(device) * 255
-    img = img.type(torch.uint8)
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img_tensor = to_tensor(img_rgb).to(device) * 255
+    img_tensor = img_tensor.type(torch.uint8)
 
     preprocess = weights.transforms()
-
-    batch = [preprocess(img)]
+    batch = [preprocess(img_tensor)]
+    
     with torch.no_grad():
         prediction = model(batch)[0]
 
     labels = [weights.meta["categories"][i] for i in prediction["labels"]]
-    box = draw_bounding_boxes(img, boxes=prediction["boxes"],
-                               labels=labels,
-                               colors="red",
-                               width=4, font='calibri.ttf', font_size=30)
-    im = to_pil_image(box.detach().cpu())
+    
+    mask = np.zeros_like(img_rgb, dtype=np.uint8)
+    
+    for box in prediction["boxes"]:
+        x, y, w, h = map(int, box)
+        mask[y:y+h, x:x+w] = 255
 
-    im_tk = ImageTk.PhotoImage(im)
+    mask_inv = cv2.bitwise_not(mask)
+
+    if boolblur:
+        blurred_img = cv2.GaussianBlur(img_rgb, (25, 25), 0)  
+        img_rgb[mask_inv > 0] = blurred_img[mask_inv > 0]
+
+  
+    for box, label in zip(prediction["boxes"], labels):
+        x, y, w, h = map(int, box)
+        cv2.rectangle(img_rgb, (x, y), (x+w, y+h), (255, 0, 0), 4)
+        cv2.putText(img_rgb, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
+
+    pil_img = to_pil_image(img_rgb)
+    im_tk = ImageTk.PhotoImage(pil_img)
 
     lmain.img = im_tk
     lmain.configure(image=im_tk)
+    
     end_time = time.time()
     fps = 1 / np.round(end_time - start_time, 3)
     fps_r = round(fps, 1)
     fpsdisplay.config(text=f"FPS: {fps_r}")
+
     if video_on:
         ikkuna.after(10, video_stream)
+
+
+
 
 def text_detection():
     global fps, video_on,translate_var,cap
@@ -168,12 +186,22 @@ def input_changed(event):
     cap.set(3, 512)
     cap.set(4, 512)
    
-    
+def effects():
+    global boolblur
+    if boolblur:
+        boolblur = False
+    else:
+        boolblur = True
+
+
 stringvariable=tk.StringVar()
 input_device_list = ttk.Combobox(ikkuna,values=["0", "1", "2", "3"],textvariable=stringvariable)
 
 video_button = Button(ikkuna, text="Toggle mode", command=toggle_mode)
 video_button.place(y=20, x=650)
+
+blur_button = Button(ikkuna, text="Blur", command=effects)
+blur_button.place(y=20, x=870)
 
 translate_button = Button(ikkuna, text="Translating on", command=translate_mode)
 translate_button.place(y=20, x=730)
