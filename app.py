@@ -12,6 +12,7 @@ from tkinter import *
 import time
 import easyocr
 from translate import Translator
+import cvzone
 
 
 to_lang = ''
@@ -30,8 +31,9 @@ text_scroll=Scrollbar(ikkuna, orient='vertical',command=text_box.yview)
 text_scroll.grid(row=0,column=2,sticky=tk.NS)
 text_box=Text(yscrollcommand=text_scroll.set)
 
-lista = ['en','se','fi','zh','de']
+filtterilista = ["Will Smith", "Aurinkolasit", "Pekka", "Trump"]
 
+lista = ['en','se','fi','zh','de']
 clicked = StringVar() 
 clicked.set('en')
 
@@ -67,6 +69,9 @@ translate_var=False
 
 reader = easyocr.Reader(['en'])
 
+
+        
+    
 def video_stream():
     global fps, video_on, cap, boolblur
 
@@ -117,6 +122,30 @@ def video_stream():
         ikkuna.after(10, video_stream)
 
 
+def filtterit():
+    global video_on, cap
+    video_on = not video_on
+    overlay = cv2.imread('pekka.png', cv2.IMREAD_UNCHANGED)
+    cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
+    _, frame = cap.read()
+    
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
+    faces = cascade.detectMultiScale(frame, 1.1, 8)
+    for (x, y, w, h) in faces:
+        overlay_resize = cv2.resize(overlay, (int(w*1.3), int(h*1.6)))
+        frame = cvzone.overlayPNG(frame, overlay_resize, [x-17, y-55])  
+        
+
+    frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGRA)
+
+    pil_img = to_pil_image(frame)
+    im_tk = ImageTk.PhotoImage(pil_img)
+    
+    lmain.img = im_tk
+    lmain.configure(image=im_tk)
+    
+    ikkuna.after(10, filtterit)
 
 
 def text_detection():
@@ -214,6 +243,15 @@ clicked.set('en')
 clicked.trace_add('write', update_language)
 option_menu = OptionMenu(ikkuna, clicked, *lista)
 option_menu.place(x=815, y=17)
+
+
+klikattu = StringVar() 
+
+
+#valinta_menu = OptionMenu(ikkuna, klikattu, *filtterilista)
+#valinta_menu.place(x=905, y=20)
+valinta_button = Button(ikkuna, text="filtteri", command=filtterit)
+valinta_button.place(y=20, x=930)
 
 fpsdisplay = tk.Label(ikkuna, text=f"FPS:--")
 fpsdisplay.place(x=600, y=0)
