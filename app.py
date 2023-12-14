@@ -19,7 +19,7 @@ to_lang = ''
 translator= Translator(to_lang="en", from_lang='autodetect')
 ikkuna = tk.Tk()
 ikkuna.title("Object detect")
-ikkuna.geometry("1400x512")
+ikkuna.geometry("1330x512")
 app = Frame(ikkuna, bg="black")
 app.grid()
 
@@ -54,11 +54,13 @@ def update_language(*args):
 
 
 fps = 0
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 cap.set(3, 512)
 cap.set(4, 512)
 
-boolblur = False
+
+varblur = 0
+
 video_on = 1  
 current_mode_label = tk.Label(ikkuna, text="Current Mode: Video Stream")
 current_mode_label.place(x=700, y=0)
@@ -73,7 +75,7 @@ reader = easyocr.Reader(['en'])
         
     
 def video_stream():
-    global fps, video_on, cap, boolblur
+    global fps, video_on, cap, varblur
 
     ret, img = cap.read()
     start_time = time.time()
@@ -97,7 +99,11 @@ def video_stream():
 
     mask_inv = cv2.bitwise_not(mask)
 
-    if boolblur:
+    if varblur == 1:#blurring inside of the box 
+        blurred_img = cv2.GaussianBlur(img_rgb, (15, 15), 0)
+        img_rgb[mask > 0] = blurred_img[mask > 0]
+
+    if varblur == 2:#blurring outside of the box
         blurred_img = cv2.GaussianBlur(img_rgb, (25, 25), 0)  
         img_rgb[mask_inv > 0] = blurred_img[mask_inv > 0]
 
@@ -223,11 +229,16 @@ def input_changed(event):
     cap.set(4, 512)
    
 def effects():
-    global boolblur
-    if boolblur:
-        boolblur = False
+    global varblur
+    if varblur == 1:
+        varblur = 2
+        blur_button.config(text="Blur Out")
+    elif varblur == 0:
+        blur_button.config(text="Blur In")
+        varblur = 1
     else:
-        boolblur = True
+        varblur = 0
+        blur_button.config(text="Blur Off")
 
 
 stringvariable=tk.StringVar()
@@ -236,7 +247,7 @@ input_device_list = ttk.Combobox(ikkuna,values=["0", "1", "2", "3"],textvariable
 video_button = Button(ikkuna, text="Toggle mode", command=toggle_mode)
 video_button.place(y=20, x=650)
 
-blur_button = Button(ikkuna, text="Blur", command=effects)
+blur_button = Button(ikkuna, text="Blur Off", command=effects)
 blur_button.place(y=20, x=870)
 
 translate_button = Button(ikkuna, text="Translating on", command=translate_mode)
