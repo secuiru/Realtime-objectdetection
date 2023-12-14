@@ -12,6 +12,7 @@ from tkinter import *
 import time
 import easyocr
 from translate import Translator
+import cvzone
 
 
 to_lang = ''
@@ -30,8 +31,9 @@ text_scroll=Scrollbar(ikkuna, orient='vertical',command=text_box.yview)
 text_scroll.grid(row=0,column=2,sticky=tk.NS)
 text_box=Text(yscrollcommand=text_scroll.set)
 
-lista = ['en','se','fi','zh','de']
+filtterilista = ["Will Smith", "Aurinkolasit", "Trump"]
 
+lista = ['en','se','fi','zh','de']
 clicked = StringVar() 
 clicked.set('en')
 
@@ -57,7 +59,7 @@ cap.set(3, 512)
 cap.set(4, 512)
 
 boolblur = False
-video_on = True  
+video_on = 1  
 current_mode_label = tk.Label(ikkuna, text="Current Mode: Video Stream")
 current_mode_label.place(x=700, y=0)
 
@@ -67,6 +69,9 @@ translate_var=False
 
 reader = easyocr.Reader(['en'])
 
+
+        
+    
 def video_stream():
     global fps, video_on, cap, boolblur
 
@@ -113,10 +118,34 @@ def video_stream():
     fps_r = round(fps, 1)
     fpsdisplay.config(text=f"FPS: {fps_r}")
 
-    if video_on:
+    if video_on==1:
         ikkuna.after(10, video_stream)
 
 
+def filtterit():
+    global video_on, cap
+    
+    overlay = cv2.imread('trump.png', cv2.IMREAD_UNCHANGED)
+    cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
+    _, frame = cap.read()
+    
+    
+    faces = cascade.detectMultiScale(frame, 1.1, 8)
+    for (x, y, w, h) in faces:
+        overlay_resize = cv2.resize(overlay, (int(w*1.3), int(h*1.6)))
+        frame = cvzone.overlayPNG(frame, overlay_resize, [x-17, y-55])  
+        
+
+    frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGRA)
+
+    pil_img = to_pil_image(frame)
+    im_tk = ImageTk.PhotoImage(pil_img)
+    
+    lmain.img = im_tk
+    lmain.configure(image=im_tk)
+    if video_on==3:
+        ikkuna.after(10, filtterit)
 
 
 def text_detection():
@@ -143,7 +172,7 @@ def text_detection():
 
     text_box.yview(tk.END)
 
-    if not video_on:
+    if video_on==2:
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         im_pil = Img.fromarray(img)
         im_tk = ImageTk.PhotoImage(im_pil)
@@ -161,13 +190,20 @@ def text_detection():
 
 def toggle_mode():
     global video_on
-    video_on = not video_on
-    if video_on:
+    
+    video_on +=1
+    if video_on > 3:
+        video_on=1
+
+    if video_on==1:
         current_mode_label.config(text="Current Mode: Video")
         video_stream()
-    else:
+    if video_on==2:
         current_mode_label.config(text="Current Mode: Text")
         text_detection()
+    if video_on==3:
+        current_mode_label.config(text="Current Mode: Filter")
+        filtterit()
 
 def translate_mode():
     global translate_var
@@ -214,6 +250,15 @@ clicked.set('en')
 clicked.trace_add('write', update_language)
 option_menu = OptionMenu(ikkuna, clicked, *lista)
 option_menu.place(x=815, y=17)
+
+
+klikattu = StringVar() 
+
+
+#valinta_menu = OptionMenu(ikkuna, klikattu, *filtterilista)
+#valinta_menu.place(x=905, y=20)
+valinta_button = Button(ikkuna, text="filtteri", command=filtterit)
+valinta_button.place(y=20, x=930)
 
 fpsdisplay = tk.Label(ikkuna, text=f"FPS:--")
 fpsdisplay.place(x=600, y=0)
