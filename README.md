@@ -1,5 +1,6 @@
 # Object Detection App
-This Python application uses computer vision and a pretrained machine learning model for real-time object detection through a webcam feed. It utilizes the torchvision library for object detection, easyocr for text extraction, and cvzone for face swapping. The application also supports translation and blur effect.
+
+This Python application uses computer vision and a pretrained machine learning model for real-time object detection through a webcam feed. It utilizes the torchvision library for object detection, easyocr for text extraction, and cvzone for face swapping. The application also supports translation and blur effect. It was developed as part of a group project in the Product Design and Implementation course.
 ![objectdetection1](https://github.com/secuiru/Realtime-objectdetection/assets/98741682/20e06dd9-989a-482b-b544-d36d03884e59)
 
 ![image](https://github.com/secuiru/Realtime-objectdetection/assets/98741682/b9b9e8bf-68b4-4a7c-8d75-fed1e6d4cd83)
