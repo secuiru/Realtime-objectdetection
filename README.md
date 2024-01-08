@@ -1,24 +1,17 @@
 # Object Detection App
-This Python application uses computer vision for real-time object detection and interaction through a webcam feed. It utilizes the torchvision library for object detection, easyocr for text extraction, and cvzone for face swapping. The application also supports translation and blur effect.
+This Python application uses computer vision and a pretrained machine learning model for real-time object detection through a webcam feed. It utilizes the torchvision library for object detection, easyocr for text extraction, and cvzone for face swapping. The application also supports translation and blur effect.
 ![objectdetection1](https://github.com/secuiru/Realtime-objectdetection/assets/98741682/20e06dd9-989a-482b-b544-d36d03884e59)
 
+![image](https://github.com/secuiru/Realtime-objectdetection/assets/98741682/b9b9e8bf-68b4-4a7c-8d75-fed1e6d4cd83)
 
 ## Installation
 Before running the application, make sure to install the required libraries:
-
-bash
-Copy code
+```
 pip install opencv-python torch torchvision Pillow easyocr translate cvzone mediapipe
-## Usage
-Run the application using the following command:
-
-bash
-Copy code
-python your_script_name.py
-Make sure to replace your_script_name.py with the actual name of your Python script.
+```
 
 ## Features
-1. Video Stream Mode: Real-time object detection using Faster R-CNN ResNet-50.
+1. Video Stream Mode: Real-time object detection using Faster R-CNN ResNet-50 model.
 2. Text Mode: Detect and translate text in the webcam feed using OCR (Optical Character Recognition).
 3. Filter Mode: Apply face-swapping filters using pre-loaded images (e.g., Trump, Biden, Will Smith).
 4. Mesh Mode: Utilize face mesh detection to add facial landmarks on the user's face.
